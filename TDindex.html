@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Probenahmeprotokoll – Profi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+          crossorigin="anonymous"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f4f6f8;
+    }
+
+    .pageHeader {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .pageHeader img {
+      height: 40px;
+      width: auto;
+      border-radius: 6px;
+    }
+
+    .headerText {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+    }
+
+    .companyName {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .shopUrl {
+      color: #2c7be5;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    form {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    h2 {
+      font-size: 1.05rem;
+      margin: 0.5rem 0;
+      padding-bottom: 4px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    fieldset {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
+
+    legend {
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0 0.25rem;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+      margin-bottom: 0.4rem;
+    }
+
+    input, select, textarea {
+      font-size: 0.9rem;
+      padding: 0.35rem 0.45rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-family: inherit;
+    }
+
+    textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
+
+    input[type="number"] {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .inline label {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.25rem;
+      margin-bottom: 0;
+    }
+
+    button {
+      font-size: 1rem;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: none;
+      background: #2c7be5;
+      color: #fff;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    button.secondary {
+      background: #6c757d;
+    }
+
+    button.danger {
+      background: #e55353;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    #sigContainer {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.5rem;
+      background: #fafafa;
+    }
+
+    #sigPad {
+      width: 100%;
+      height: 150px;
+      border: 1px dashed #999;
+      border-radius: 6px;
+      touch-action: none; /* wichtig für iPhone-Pinsel */
+    }
+
+    #sigButtons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      gap: 0.5rem;
+    }
+
+    small {
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    #formButtons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #formButtons button {
+      flex: 1 1 100%;
+    }
+
+    @media (min-width: 600px) {
+      #formButtons button {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header class="pageHeader">
+  <!-- Logo-Datei im gleichen Ordner wie diese HTML: logo.png -->
+  <img id="logoImg" src="logo.png" alt="Logo RM-Umwelttechnik">
+  <div class="headerText">
+    <span class="companyName">RM-Umwelttechnik</span>
+    <span class="shopUrl">Onlineshop: rm-umwelttechnik.de</span>
+  </div>
+</header>
+
+<h1>Probenahmeprotokoll – Profi</h1>
+
+<div id="formButtons">
+  <button type="button" id="saveLocal" class="secondary">Formulardaten lokal speichern</button>
+  <button type="button" id="loadLocal" class="secondary">Formulardaten laden</button>
+  <button type="button" id="exportJson" class="secondary">Daten-Datei exportieren</button>
+</div>
+
+<form id="probenForm">
+  <!-- ANLAGEN-DATEN -->
+  <fieldset>
+    <legend>Anlagendaten</legend>
+    <label>Anlagenbezeichnung
+      <input id="anlage">
+    </label>
+    <label>Betreiber
+      <input id="betreiber">
+    </label>
+    <label>Gemeinde
+      <input id="gemeinde">
+    </label>
+    <label>Ausbaugröße (EW)
+      <input type="number" id="ausbau" inputmode="decimal">
+    </label>
+    <label>Anlagentyp
+      <input id="anlagentyp" placeholder="z. B. Tropfkörper mit NKB">
+    </label>
+    <label>Belüftungsart
+      <input id="belueftungsart" placeholder="z. B. freie Durchlüftung">
+    </label>
+  </fieldset>
+
+  <!-- PROBENAHME -->
+  <fieldset>
+    <legend>Probenahme</legend>
+    <label>Datum
+      <input type="date" id="datum" required>
+    </label>
+    <label>Uhrzeit
+      <input type="time" id="uhrzeit" required>
+    </label>
+    <label>Letzte Probe – Datum
+      <input type="date" id="letzteDatum">
+    </label>
+    <label>Letzte Probe – Uhrzeit
+      <input type="time" id="letzteZeit">
+    </label>
+
+    <label>Wetter bei Probenahme
+      <select id="wetter">
+        <option value="">– auswählen –</option>
+        <option>Trockenwetter</option>
+        <option>Regenwetter</option>
+      </select>
+    </label>
+    <label>Wetter Vortag
+      <select id="wetterVortag">
+        <option value="">– auswählen –</option>
+        <option>Trockenwetter</option>
+        <option>Regenwetter</option>
+      </select>
+    </label>
+    <label>Lufttemperatur (°C)
+      <input type="number" step="0.1" id="lufttemp" inputmode="decimal">
+    </label>
+  </fieldset>
+
+  <!-- PROBENAHMESTELLE -->
+  <fieldset>
+    <legend>Probenahmestelle / Ablauf</legend>
+    <div class="inline">
+      <span>Probenahmestelle:</span>
+      <label><input type="checkbox" id="stelleAuslauf"> Auslauf</label>
+      <label><input type="checkbox" id="stelleZulauf"> Zulauf</label>
+    </div>
+
+    <label>Trübung Ablauf
+      <select id="truebung">
+        <option value="">– auswählen –</option>
+        <option>klar/durchsichtig</option>
+        <option>schwach getrübt</option>
+        <option>stark getrübt</option>
+        <option>undurchsichtig</option>
+      </select>
+    </label>
+
+    <label>Geruch Ablauf
+      <select id="geruch">
+        <option value="">– auswählen –</option>
+        <option>ohne</option>
+        <option>erdig</option>
+        <option>fäkalisch</option>
+        <option>muffig/moderig</option>
+        <option>faulig</option>
+        <option>jauchig</option>
+        <option>stinkend</option>
+      </select>
+    </label>
+
+    <label>Schwimmstoffe Auslauf
+      <select id="schwimmstoffe">
+        <option value="">– auswählen –</option>
+        <option>keine</option>
+        <option>wenige</option>
+        <option>viele</option>
+      </select>
+    </label>
+  </fieldset>
+
+  <!-- MESSWERTE ABLUF -->
+  <fieldset>
+    <legend>Messwerte Ablauf</legend>
+    <label>Abwassertemperatur (°C)
+      <input type="number" step="0.1" id="abwTemp" inputmode="decimal">
+    </label>
+    <label>pH-Wert
+      <input type="number" step="0.1" id="ph" inputmode="decimal">
+    </label>
+    <label>Leitfähigkeit (µS/cm)
+      <input type="number" id="leit" inputmode="decimal">
+    </label>
+    <label>Absetzbare Stoffe (ml/l)
+      <input type="number" step="0.1" id="absetz" inputmode="decimal">
+    </label>
+    <label>Sichttiefe (cm / Einschätzung)
+      <input id="sichttiefe" placeholder="z. B. 50 cm oder &lt;50 %">
+    </label>
+  </fieldset>
+
+  <!-- FUNKTIONSPRÜFUNG -->
+  <fieldset>
+    <legend>Funktionsprüfung</legend>
+    <div class="inline">
+      <label><input type="checkbox" id="fpVerteilung"> Verteilung ok</label>
+      <label><input type="checkbox" id="fpSteuerung"> Steuerung ok</label>
+      <label><input type="checkbox" id="fpBelueftung"> Belüftung ok</label>
+      <label><input type="checkbox" id="fpGruben"> Gruben ok</label>
+      <label><input type="checkbox" id="fpSchaltuhren"> Schaltuhren ok</label>
+      <label><input type="checkbox" id="fpPumpen"> Pumpen ok</label>
+    </div>
+  </fieldset>
+
+  <!-- VORKLÄRUNG -->
+  <fieldset>
+    <legend>Vorklärung</legend>
+    <label>Status
+      <select id="vorklaerungStatus">
+        <option value="">– auswählen –</option>
+        <option>nicht erforderlich</option>
+        <option>erforderlich</option>
+        <option>abgefahren</option>
+      </select>
+    </label>
+    <label>Vorklärung abgefahren am
+      <input type="date" id="vorklaerungDatum">
+    </label>
+  </fieldset>
+
+  <!-- WASSERVERBRAUCH -->
+  <fieldset>
+    <legend>Wasserverbrauch</legend>
+    <label>Haus 1 – Stand alt (m³)
+      <input type="number" id="w1alt" inputmode="decimal">
+    </label>
+    <label>Haus 1 – Stand neu (m³)
+      <input type="number" id="w1neu" inputmode="decimal">
+    </label>
+    <label>Haus 2 – Stand alt (m³)
+      <input type="number" id="w2alt" inputmode="decimal">
+    </label>
+    <label>Haus 2 – Stand neu (m³)
+      <input type="number" id="w2neu" inputmode="decimal">
+    </label>
+    <small>Verbrauch &amp; Summe werden im PDF berechnet.</small>
+  </fieldset>
+
+  <!-- PUMPEN -->
+  <fieldset>
+    <legend>Pumpen (Betriebsstunden &amp; Strom)</legend>
+    <small>Alt- und Neuzählerstände der Betriebsstunden, plus Leistung der Pumpe in kW.</small>
+
+    <div>
+      <strong>Pumpe 1</strong>
+      <label>Betriebsstunden alt <input type="number" step="0.1" id="p1alt" inputmode="decimal"></label>
+      <label>Betriebsstunden neu <input type="number" step="0.1" id="p1neu" inputmode="decimal"></label>
+      <label>Leistung (kW) <input type="number" step="0.01" id="p1kw" inputmode="decimal"></label>
+    </div>
+
+    <div>
+      <strong>Pumpe 2</strong>
+      <label>Betriebsstunden alt <input type="number" step="0.1" id="p2alt" inputmode="decimal"></label>
+      <label>Betriebsstunden neu <input type="number" step="0.1" id="p2neu" inputmode="decimal"></label>
+      <label>Leistung (kW) <input type="number" step="0.01" id="p2kw" inputmode="decimal"></label>
+    </div>
+
+    <div>
+      <strong>Pumpe 3</strong>
+      <label>Betriebsstunden alt <input type="number" step="0.1" id="p3alt" inputmode="decimal"></label>
+      <label>Betriebsstunden neu <input type="number" step="0.1" id="p3neu" inputmode="decimal"></label>
+      <label>Leistung (kW) <input type="number" step="0.01" id="p3kw" inputmode="decimal"></label>
+    </div>
+
+    <div>
+      <strong>Pumpe 4</strong>
+      <label>Betriebsstunden alt <input type="number" step="0.1" id="p4alt" inputmode="decimal"></label>
+      <label>Betriebsstunden neu <input type="number" step="0.1" id="p4neu" inputmode="decimal"></label>
+      <label>Leistung (kW) <input type="number" step="0.01" id="p4kw" inputmode="decimal"></label>
+    </div>
+
+    <div>
+      <strong>Pumpe 5</strong>
+      <label>Betriebsstunden alt <input type="number" step="0.1" id="p5alt" inputmode="decimal"></label>
+      <label>Betriebsstunden neu <input type="number" step="0.1" id="p5neu" inputmode="decimal"></label>
+      <label>Leistung (kW) <input type="number" step="0.01" id="p5kw" inputmode="decimal"></label>
+    </div>
+  </fieldset>
+
+  <!-- LABORWERTE -->
+  <fieldset>
+    <legend>Laborwerte</legend>
+    <small>Zulauf / Auslauf in mg/l, Grenzwerte laut Bescheid.</small>
+
+    <label>BSB₅ Zulauf <input type="number" step="0.1" id="bsbZ" inputmode="decimal"></label>
+    <label>BSB₅ Auslauf <input type="number" step="0.1" id="bsbA" inputmode="decimal"></label>
+    <label>BSB₅ Grenzwert <input type="number" step="0.1" id="bsbG" value="20" inputmode="decimal"></label>
+
+    <label>CSB Zulauf <input type="number" step="0.1" id="csbZ" inputmode="decimal"></label>
+    <label>CSB Auslauf <input type="number" step="0.1" id="csbA" inputmode="decimal"></label>
+    <label>CSB Grenzwert <input type="number" step="0.1" id="csbG" value="90" inputmode="decimal"></label>
+
+    <label>NH₄-N Zulauf <input type="number" step="0.1" id="nh4Z" inputmode="decimal"></label>
+    <label>NH₄-N Auslauf <input type="number" step="0.1" id="nh4A" inputmode="decimal"></label>
+    <label>NH₄-N Grenzwert <input type="number" step="0.1" id="nh4G" value="90" inputmode="decimal"></label>
+
+    <label>NO₂-N Zulauf <input type="number" step="0.1" id="no2Z" inputmode="decimal"></label>
+    <label>NO₂-N Auslauf <input type="number" step="0.1" id="no2A" inputmode="decimal"></label>
+    <label>NO₂-N Grenzwert <input type="number" step="0.1" id="no2G" inputmode="decimal"></label>
+
+    <label>NO₃-N Zulauf <input type="number" step="0.1" id="no3Z" inputmode="decimal"></label>
+    <label>NO₃-N Auslauf <input type="number" step="0.1" id="no3A" inputmode="decimal"></label>
+    <label>NO₃-N Grenzwert <input type="number" step="0.1" id="no3G" inputmode="decimal"></label>
+
+    <label>Nges. anorg. Grenzwert <input type="number" step="0.1" id="nAnorgG" value="90" inputmode="decimal"></label>
+
+    <label>Pges Zulauf <input type="number" step="0.1" id="pZ" inputmode="decimal"></label>
+    <label>Pges Auslauf <input type="number" step="0.1" id="pA" inputmode="decimal"></label>
+    <label>Pges Grenzwert <input type="number" step="0.1" id="pG" value="30" inputmode="decimal"></label>
+  </fieldset>
+
+  <!-- PARAMETER / MÄNGEL -->
+  <fieldset>
+    <legend>Parameter / Zustand</legend>
+    <div class="inline">
+      <label><input type="radio" id="zustandIO" name="zustand" value="iO"> Anlage i.O.</label>
+      <label><input type="radio" id="zustandMaengel" name="zustand" value="maengel"> Mängel vorhanden</label>
+    </div>
+    <label>Parameter in Ordnung (Kurzbeschreibung)
+      <textarea id="paramInOrdnung" placeholder="z. B. Belüftung, Verteilung und Ablauf optisch in Ordnung."></textarea>
+    </label>
+    <label>Mängel / Bemerkungen
+      <textarea id="maengelText" placeholder="z. B. defekte Pumpe, starke Trübung, Geruch, Nachrüstung erforderlich ..."></textarea>
+    </label>
+  </fieldset>
+
+  <!-- BEURTEILUNG -->
+  <fieldset>
+    <legend>Beurteilung</legend>
+    <label>Ort
+      <input id="ort">
+    </label>
+    <label>Beurteilungsdatum
+      <input type="date" id="bewDatum">
+    </label>
+    <label>Bearbeiter / Abwassermeister
+      <input id="bearbeiter">
+    </label>
+    <small>Die Bemerkung „Anlage i.O.“ oder Grenzwertüberschreitungen werden automatisch aus den Laborwerten abgeleitet. Die manuelle Beurteilung (Parameter / Zustand) wird zusätzlich übernommen.</small>
+  </fieldset>
+
+  <!-- SIGNATUR -->
+  <fieldset id="sigContainer">
+    <legend>Unterschrift</legend>
+    <small>Hier mit dem Finger unterschreiben (auf dem iPhone):</small>
+    <canvas id="sigPad"></canvas>
+    <div id="sigButtons">
+      <button type="button" id="clearSig" class="danger">Unterschrift löschen</button>
+    </div>
+  </fieldset>
+
+  <button type="submit">Speichern &amp; PDF erstellen</button>
+</form>
+
+<script>
+  // --- Konstante für Local Storage ---
+  const STORAGE_KEY = "probenprotokoll_rm_umwelttechnik_v1";
+
+  // --- Helper für Werte ---
+  function val(id) {
+    const el = document.getElementById(id);
+    return el ? (el.value || "") : "";
+  }
+
+  function num(id) {
+    const el = document.getElementById(id);
+    if (!el || !el.value) return 0;
+    const v = parseFloat(el.value.toString().replace(",", "."));
+    return isNaN(v) ? 0 : v;
+  }
+
+  function numOrBlank(id, digits = 1) {
+    const el = document.getElementById(id);
+    if (!el || !el.value) return "";
+    const v = parseFloat(el.value.toString().replace(",", "."));
+    if (isNaN(v)) return "";
+    return v.toFixed(digits);
+  }
+
+  function diffOrZero(neu, alt) {
+    const d = neu - alt;
+    return d < 0 ? 0 : d;
+  }
+
+  // --- Logo in PDF vorbereiten ---
+  let logoDataURL = null;
+
+  function prepareLogoDataURL() {
+    const img = document.getElementById("logoImg");
+    if (!img) return;
+    if (!img.complete || img.naturalWidth === 0) {
+      img.addEventListener("load", prepareLogoDataURL, { once: true });
+      return;
+    }
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const cctx = c.getContext("2d");
+    cctx.drawImage(img, 0, 0);
+    logoDataURL = c.toDataURL("image/png");
+  }
+
+  // --- Datum/Uhrzeit/Bearbeiter vorbelegen ---
+  window.addEventListener("DOMContentLoaded", () => {
+    prepareLogoDataURL();
+
+    const heute = new Date();
+    const yyyy = heute.getFullYear();
+    const mm = String(heute.getMonth() + 1).padStart(2, "0");
+    const dd = String(heute.getDate()).padStart(2, "0");
+    const hh = String(heute.getHours()).padStart(2, "0");
+    const mi = String(heute.getMinutes()).padStart(2, "0");
+
+    const datumInput = document.getElementById("datum");
+    const uhrzeitInput = document.getElementById("uhrzeit");
+    const bewDatumInput = document.getElementById("bewDatum");
+    const bearbeiterInput = document.getElementById("bearbeiter");
+
+    if (datumInput && !datumInput.value) datumInput.value = `${yyyy}-${mm}-${dd}`;
+    if (uhrzeitInput && !uhrzeitInput.value) uhrzeitInput.value = `${hh}:${mi}`;
+    if (bewDatumInput && !bewDatumInput.value) bewDatumInput.value = `${yyyy}-${mm}-${dd}`;
+    if (bearbeiterInput && !bearbeiterInput.value) bearbeiterInput.value = "Rene Mehler";
+
+    // Buttons für Local Storage & Export
+    document.getElementById("saveLocal").addEventListener("click", saveToLocal);
+    document.getElementById("loadLocal").addEventListener("click", loadFromLocal);
+    document.getElementById("exportJson").addEventListener("click", exportJson);
+  });
+
+  // --- Local Storage: speichern ---
+  function saveToLocal() {
+    const data = {};
+    const elements = document.querySelectorAll("#probenForm input[id], #probenForm select[id], #probenForm textarea[id]");
+    elements.forEach(el => {
+      if (!el.id) return;
+      if (el.type === "checkbox" || el.type === "radio") {
+        data[el.id] = el.checked;
+      } else {
+        data[el.id] = el.value;
+      }
+    });
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      alert("Formulardaten wurden lokal gespeichert.");
+    } catch (e) {
+      alert("Speichern fehlgeschlagen (Local Storage).");
+    }
+  }
+
+  // --- Local Storage: laden ---
+  function loadFromLocal() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      alert("Keine gespeicherten Daten gefunden.");
+      return;
+    }
+    try {
+      const data = JSON.parse(raw);
+      const elements = document.querySelectorAll("#probenForm input[id], #probenForm select[id], #probenForm textarea[id]");
+      elements.forEach(el => {
+        if (!el.id) return;
+        if (!(el.id in data)) return;
+        if (el.type === "checkbox" || el.type === "radio") {
+          el.checked = !!data[el.id];
+        } else {
+          el.value = data[el.id];
+        }
+      });
+      alert("Formulardaten wurden geladen.");
+    } catch (e) {
+      alert("Laden der gespeicherten Daten fehlgeschlagen.");
+    }
+  }
+
+  // --- Export als JSON-Datei (z. B. in iCloud Drive speichern) ---
+  function exportJson() {
+    const data = {};
+    const elements = document.querySelectorAll("#probenForm input[id], #probenForm select[id], #probenForm textarea[id]");
+    elements.forEach(el => {
+      if (!el.id) return;
+      if (el.type === "checkbox" || el.type === "radio") {
+        data[el.id] = el.checked;
+      } else {
+        data[el.id] = el.value;
+      }
+    });
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const datumStr = val("datum") || new Date().toISOString().slice(0, 10);
+    const anlageName = val("anlage") || "Anlage";
+    const filename = `Protokoll_Daten_${datumStr}_${anlageName}.json`.replace(/[^a-zA-Z0-9_\-.]/g, "_");
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    // Auf dem iPhone kannst du dann "In Dateien sichern" wählen und iCloud Drive auswählen.
+  }
+
+  // --- SIGNATURE PAD ---
+  let isDrawing = false;
+  let lastX = 0;
+  let lastY = 0;
+  let sigMade = false;
+
+  const canvas = document.getElementById("sigPad");
+  const ctx = canvas.getContext("2d");
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#000";
+  }
+
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches && e.touches[0]) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    } else {
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    isDrawing = true;
+    sigMade = true;
+    const pos = getPos(e);
+    lastX = pos.x;
+    lastY = pos.y;
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    lastX = pos.x;
+    lastY = pos.y;
+  }
+
+  function endDraw(e) {
+    e && e.preventDefault();
+    isDrawing = false;
+  }
+
+  canvas.addEventListener("mousedown", startDraw);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", endDraw);
+  canvas.addEventListener("mouseleave", endDraw);
+
+  canvas.addEventListener("touchstart", startDraw, { passive: false });
+  canvas.addEventListener("touchmove", draw, { passive: false });
+  canvas.addEventListener("touchend", endDraw, { passive: false });
+  canvas.addEventListener("touchcancel", endDraw, { passive: false });
+
+  document.getElementById("clearSig").addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    sigMade = false;
+  });
+
+  // --- Helper für Seitenumbruch ---
+  function ensureSpace(doc, currentY, needed, marginTop = 15) {
+    const pageHeight = doc.internal.pageSize.getHeight();
+    if (currentY + needed > pageHeight - 15) {
+      doc.addPage();
+      return marginTop;
+    }
+    return currentY;
+  }
+
+  // --- FORM SUBMIT / PDF ---
+  document.getElementById("probenForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    createPDF();
+  });
+
+  function createPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("p", "mm", "a4");
+
+    // Kopfbereich mit Logo und Titel
+    if (logoDataURL) {
+      // Breite 30mm, Höhe proportional
+      doc.addImage(logoDataURL, "PNG", 10, 8, 30, 0);
+    }
+
+    doc.setFontSize(14);
+    doc.text("Probenahmeprotokoll", 105, 15, { align: "center" });
+    doc.setFontSize(10);
+    doc.text("rm-umwelttechnik.de", 105, 21, { align: "center" });
+
+    let y = 28;
+
+    doc.setFontSize(10);
+
+    // Anlagendaten
+    doc.setFont(undefined, "bold");
+    doc.text("Anlagendaten", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+    doc.text("Anlage: " + val("anlage"), 10, y); y += 5;
+    doc.text("Betreiber: " + val("betreiber"), 10, y); y += 5;
+    doc.text("Gemeinde: " + val("gemeinde"), 10, y); y += 5;
+    doc.text("Ausbaugröße (EW): " + val("ausbau"), 10, y); y += 5;
+    doc.text("Anlagentyp: " + val("anlagentyp"), 10, y); y += 5;
+    doc.text("Belüftungsart: " + val("belueftungsart"), 10, y); y += 7;
+
+    // Probenahme
+    doc.setFont(undefined, "bold");
+    doc.text("Probenahme", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+    doc.text("Datum: " + val("datum") + "   Uhrzeit: " + val("uhrzeit"), 10, y); y += 5;
+    doc.text("Letzte Probe: " + val("letzteDatum") + " " + val("letzteZeit"), 10, y); y += 5;
+    doc.text("Wetter: " + val("wetter") + " (Vortag: " + val("wetterVortag") + ")", 10, y); y += 5;
+    doc.text("Lufttemperatur: " + val("lufttemp") + " °C", 10, y); y += 7;
+
+    // Probenahmestelle / Ablauf
+    const stelle = [];
+    if (document.getElementById("stelleAuslauf").checked) stelle.push("Auslauf");
+    if (document.getElementById("stelleZulauf").checked) stelle.push("Zulauf");
+
+    doc.setFont(undefined, "bold");
+    doc.text("Probenahmestelle / Ablauf", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+    doc.text("Stelle: " + (stelle.join(", ") || "-"), 10, y); y += 5;
+    doc.text("Trübung: " + val("truebung"), 10, y); y += 5;
+    doc.text("Geruch: " + val("geruch"), 10, y); y += 5;
+    doc.text("Schwimmstoffe: " + val("schwimmstoffe"), 10, y); y += 7;
+
+    // Messwerte Ablauf
+    doc.setFont(undefined, "bold");
+    doc.text("Messwerte Ablauf", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+    doc.text("Abwassertemperatur: " + val("abwTemp") + " °C", 10, y); y += 5;
+    doc.text("pH-Wert: " + val("ph"), 10, y); y += 5;
+    doc.text("Leitfähigkeit: " + val("leit") + " µS/cm", 10, y); y += 5;
+    doc.text("Absetzbare Stoffe: " + val("absetz") + " ml/l", 10, y); y += 5;
+    doc.text("Sichttiefe: " + val("sichttiefe"), 10, y); y += 7;
+
+    // Funktionsprüfung
+    const fp = [];
+    if (document.getElementById("fpVerteilung").checked) fp.push("Verteilung");
+    if (document.getElementById("fpSteuerung").checked) fp.push("Steuerung");
+    if (document.getElementById("fpBelueftung").checked) fp.push("Belüftung");
+    if (document.getElementById("fpGruben").checked) fp.push("Gruben");
+    if (document.getElementById("fpSchaltuhren").checked) fp.push("Schaltuhren");
+    if (document.getElementById("fpPumpen").checked) fp.push("Pumpen");
+
+    doc.setFont(undefined, "bold");
+    doc.text("Funktionsprüfung", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+    doc.text("Folgende Punkte i.O.: " + (fp.join(", ") || "-"), 10, y); y += 7;
+
+    // Vorklärung
+    doc.setFont(undefined, "bold");
+    doc.text("Vorklärung", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+    doc.text("Status: " + val("vorklaerungStatus"), 10, y); y += 5;
+    doc.text("Abgefahren am: " + val("vorklaerungDatum"), 10, y); y += 7;
+
+    // Wasserverbrauch
+    const w1alt = num("w1alt");
+    const w1neu = num("w1neu");
+    const w2alt = num("w2alt");
+    const w2neu = num("w2neu");
+    const v1 = diffOrZero(w1neu, w1alt);
+    const v2 = diffOrZero(w2neu, w2alt);
+    const vGes = v1 + v2;
+
+    const w1altStr = numOrBlank("w1alt", 1) || "-";
+    const w1neuStr = numOrBlank("w1neu", 1) || "-";
+    const w2altStr = numOrBlank("w2alt", 1) || "-";
+    const w2neuStr = numOrBlank("w2neu", 1) || "-";
+
+    doc.setFont(undefined, "bold");
+    doc.text("Wasserverbrauch", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+    doc.text(`Haus 1: alt ${w1altStr} – neu ${w1neuStr} => Verbrauch ${v1 ? v1.toFixed(1) + " m³" : "-"}`, 10, y); y += 5;
+    doc.text(`Haus 2: alt ${w2altStr} – neu ${w2neuStr} => Verbrauch ${v2 ? v2.toFixed(1) + " m³" : "-"}`, 10, y); y += 5;
+    doc.text(`Gesamtverbrauch Monat: ${vGes ? vGes.toFixed(1) + " m³" : "-"}`, 10, y); y += 7;
+
+    // Pumpen & Strom
+    function pumpData(n) {
+      const alt = num("p" + n + "alt");
+      const neu = num("p" + n + "neu");
+      const kw = num("p" + n + "kw");
+      const lauf = diffOrZero(neu, alt);
+      const kwh = lauf * kw;
+      return { alt, neu, kw, lauf, kwh };
+    }
+
+    const p1 = pumpData(1);
+    const p2 = pumpData(2);
+    const p3 = pumpData(3);
+    const p4 = pumpData(4);
+    const p5 = pumpData(5);
+    const stromGes = p1.kwh + p2.kwh + p3.kwh + p4.kwh + p5.kwh;
+
+    doc.setFont(undefined, "bold");
+    doc.text("Pumpen / Stromverbrauch", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+
+    function writePumpLine(label, p) {
+      // Nur schreiben, wenn etwas eingetragen wurde
+      if (!p.alt && !p.neu && !p.kw) return;
+      doc.text(
+        `${label}: ${p.alt.toFixed(1)} -> ${p.neu.toFixed(1)} h, Laufzeit ${p.lauf.toFixed(1)} h, ${p.kw.toFixed(2)} kW => ${p.kwh.toFixed(2)} kWh`,
+        10, y
+      );
+      y += 5;
+    }
+
+    writePumpLine("Pumpe 1", p1);
+    writePumpLine("Pumpe 2", p2);
+    writePumpLine("Pumpe 3", p3);
+    writePumpLine("Pumpe 4", p4);
+    writePumpLine("Pumpe 5", p5);
+    doc.text(`Gesamt Stromverbrauch: ${stromGes ? stromGes.toFixed(2) + " kWh" : "-"}`, 10, y);
+    y += 8;
+
+    // ggf. neue Seite für Labor/Unterschrift
+    y = ensureSpace(doc, y, 60);
+
+    // Laborwerte & Grenzwerte
+    doc.setFont(undefined, "bold");
+    doc.text("Laborwerte / Grenzwerte", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+
+    const bsbZ = num("bsbZ"), bsbA = num("bsbA"), bsbG = num("bsbG");
+    const csbZ = num("csbZ"), csbA = num("csbA"), csbG = num("csbG");
+    const nh4Z = num("nh4Z"), nh4A = num("nh4A"), nh4G = num("nh4G");
+    const no2Z = num("no2Z"), no2A = num("no2A"), no2G = num("no2G");
+    const no3Z = num("no3Z"), no3A = num("no3A"), no3G = num("no3G");
+    const nAnorgG = num("nAnorgG");
+    const pZ = num("pZ"), pA = num("pA"), pG = num("pG");
+
+    const nAnorgZ = nh4Z + no2Z + no3Z;
+    const nAnorgA = nh4A + no2A + no3A;
+
+    doc.text(`BSB5: Zulauf ${bsbZ.toFixed(1)}, Auslauf ${bsbA.toFixed(1)} (GW ${bsbG.toFixed(1)})`, 10, y); y += 5;
+    doc.text(`CSB: Zulauf ${csbZ.toFixed(1)}, Auslauf ${csbA.toFixed(1)} (GW ${csbG.toFixed(1)})`, 10, y); y += 5;
+    doc.text(`NH4-N: Zulauf ${nh4Z.toFixed(1)}, Auslauf ${nh4A.toFixed(1)} (GW ${nh4G.toFixed(1)})`, 10, y); y += 5;
+    doc.text(`NO2-N: Zulauf ${no2Z.toFixed(1)}, Auslauf ${no2A.toFixed(1)} (GW ${no2G.toFixed(1)})`, 10, y); y += 5;
+    doc.text(`NO3-N: Zulauf ${no3Z.toFixed(1)}, Auslauf ${no3A.toFixed(1)} (GW ${no3G.toFixed(1)})`, 10, y); y += 5;
+    doc.text(`Nges. anorg.: Zulauf ${nAnorgZ.toFixed(1)}, Auslauf ${nAnorgA.toFixed(1)} (GW ${nAnorgG.toFixed(1)})`, 10, y); y += 5;
+    doc.text(`Pges: Zulauf ${pZ.toFixed(1)}, Auslauf ${pA.toFixed(1)} (GW ${pG.toFixed(1)})`, 10, y); y += 8;
+
+    // Grenzwert-Check
+    const exceeded = [];
+
+    function check(paramName, aus, gw) {
+      if (gw > 0 && aus > gw) exceeded.push(paramName);
+    }
+
+    check("BSB5", bsbA, bsbG);
+    check("CSB", csbA, csbG);
+    check("NH4-N", nh4A, nh4G);
+    if (no2G > 0) check("NO2-N", no2A, no2G);
+    if (no3G > 0) check("NO3-N", no3A, no3G);
+    check("Nges. anorg.", nAnorgA, nAnorgG);
+    check("Pges", pA, pG);
+
+    let autoBewertung = "";
+    if (exceeded.length === 0) {
+      autoBewertung = "Anlage i.O. (alle Grenzwerte eingehalten)";
+    } else {
+      autoBewertung = "Grenzwerte überschritten bei: " + exceeded.join(", ");
+    }
+
+    // Manuelle Beurteilung Parameter/Zustand
+    let zustand = "";
+    if (document.getElementById("zustandIO").checked) zustand = "Anlage i.O.";
+    else if (document.getElementById("zustandMaengel").checked) zustand = "Mängel vorhanden";
+
+    const paramText = val("paramInOrdnung");
+    const maengelText = val("maengelText");
+
+    // Beurteilung & Ort
+    y = ensureSpace(doc, y, 60);
+
+    doc.setFont(undefined, "bold");
+    doc.text("Beurteilung", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+    doc.text("Ort: " + val("ort"), 10, y); y += 5;
+    doc.text("Datum: " + val("bewDatum"), 10, y); y += 5;
+    doc.text("Bearbeiter: " + val("bearbeiter"), 10, y); y += 5;
+
+    const autoTextSplit = doc.splitTextToSize("Automatische Bewertung (Laborwerte): " + autoBewertung, 180);
+    doc.text(autoTextSplit, 10, y);
+    y += autoTextSplit.length * 5 + 3;
+
+    const zustandText = "Manuelle Beurteilung (Parameter / Zustand): " + (zustand || "-");
+    const zustandSplit = doc.splitTextToSize(zustandText, 180);
+    doc.text(zustandSplit, 10, y);
+    y += zustandSplit.length * 5 + 3;
+
+    if (paramText) {
+      const pSplit = doc.splitTextToSize("Parameter in Ordnung: " + paramText, 180);
+      doc.text(pSplit, 10, y);
+      y += pSplit.length * 5 + 3;
+    }
+    if (maengelText) {
+      const mSplit = doc.splitTextToSize("Mängel / Bemerkungen: " + maengelText, 180);
+      doc.text(mSplit, 10, y);
+      y += mSplit.length * 5 + 3;
+    }
+
+    // Unterschrift
+    y = ensureSpace(doc, y, 40);
+    doc.setFont(undefined, "bold");
+    doc.text("Unterschrift:", 10, y);
+    doc.setFont(undefined, "normal");
+    y += 5;
+
+    if (sigMade) {
+      const imgData = canvas.toDataURL("image/png");
+      const sigWidth = 60;
+      const sigHeight = 60 * (canvas.height / canvas.width);
+      doc.addImage(imgData, "PNG", 10, y, sigWidth, sigHeight);
+      y += sigHeight + 5;
+    } else {
+      doc.text("(keine Unterschrift erfasst)", 10, y);
+      y += 5;
+    }
+
+    // Footer auf allen Seiten: Onlineshop
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont(undefined, "normal");
+      doc.text("rm-umwelttechnik.de – Ihr Onlineshop für Umwelt- und Abwassertechnik", 10, 290);
+    }
+
+    const anlageName = val("anlage") || "Anlage";
+    const datumStr = val("datum") || new Date().toISOString().slice(0, 10);
+    const filename = `Protokoll_${datumStr}_${anlageName}.pdf`.replace(/[^a-zA-Z0-9_\-.]/g, "_");
+    doc.save(filename);
+  }
+</script>
+
+</body>
+</html>
